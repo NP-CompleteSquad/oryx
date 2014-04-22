@@ -49,7 +49,7 @@ public final class SolverLoadIT extends OryxTest {
     // long elapsedMS = stopwatch.elapsed(TimeUnit.MILLISECONDS);
     long elapsedMS = stopwatch.elapsedTime(TimeUnit.MILLISECONDS);
     log.info("{}ms elapsed for {} iterations", elapsedMS, iterations);
-    assertTrue(elapsedMS < 600 * iterations);
+    assertTrue(elapsedMS < 800 * iterations);
   }
   
   private static RealMatrix randomSymmetricMatrix(int dimension) {

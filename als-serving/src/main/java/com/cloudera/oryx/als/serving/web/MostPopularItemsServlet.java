@@ -25,10 +25,13 @@ import com.cloudera.oryx.als.common.OryxRecommender;
 import com.cloudera.oryx.als.common.rescorer.RescorerProvider;
 
 /**
- * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)}
- * and in turn calls
- * {@link OryxRecommender#mostPopularItems(int)}. If {@code howMany} is not specified, defaults to
- * {@link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)(&offset=o)}
+ * and in turn calls {@link OryxRecommender#mostPopularItems(int)}.
+ * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
+ * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
+ * will cause the implementation to retrieve 35 results internally and output the last 5.
+ * If {@code howMany} is not specified, defaults to {@link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * {@code offset} defaults to 0.</p>
  *
  * <p>Output is as in {@link RecommendServlet}.</p>
  *
@@ -43,7 +46,7 @@ public final class MostPopularItemsServlet extends AbstractALSServlet {
     try {
       Rescorer rescorer = rescorerProvider == null ? null :
           rescorerProvider.getMostPopularItemsRescorer(recommender, getRescorerParams(request));
-      output(request, response, recommender.mostPopularItems(getHowMany(request), rescorer));
+      output(request, response, recommender.mostPopularItems(getNumResultsToFetch(request), rescorer));
     } catch (NotReadyException nre) {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     } catch (IllegalArgumentException iae) {

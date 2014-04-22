@@ -161,9 +161,7 @@ public class RRQRDecomposition extends QRDecomposition {
    * <p>This implementation looks at Frobenius norms of the sequence of
    * bottom right submatrices.  When a large fall in norm is seen,
    * the rank is returned. The drop is computed as:</p>
-   * <pre>
-   *   (thisNorm/lastNorm) * rNorm < dropThreshold
-   * </pre>
+   * {@code (thisNorm/lastNorm) * rNorm < dropThreshold }
    * <p>
    * where thisNorm is the Frobenius norm of the current submatrix,
    * lastNorm is the Frobenius norm of the previous submatrix,

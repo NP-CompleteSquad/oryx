@@ -47,7 +47,7 @@ import com.cloudera.oryx.common.random.RandomManager;
  * evaluating whether the dot product of the random vector and given vector is positive or not.</p>
  *
  * <p>These H 1/0 hash values are combined into a signature of H bits, which are represented as an {@code long}
- * because for purposes here, H <= 64.</p>
+ * because for purposes here, H is less than or equal to 64.</p>
  *
  * <p>"Close" vectors -- those which form small angles together -- point in nearly the same direction and so
  * should generally fall on the same sides of these hyperplanes. That is, they should match in most bits.</p>

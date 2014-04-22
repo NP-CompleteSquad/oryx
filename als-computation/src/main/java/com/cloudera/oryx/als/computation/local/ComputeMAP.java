@@ -52,7 +52,7 @@ final class ComputeMAP implements Callable<Object> {
 
     LongObjectMap<LongSet> testData = new LongObjectMap<LongSet>();
 
-    for (File file : testDir.listFiles(IOUtils.CSV_COMPRESSED_FILTER)) {
+    for (File file : testDir.listFiles(IOUtils.NOT_HIDDEN)) {
       for (CharSequence line : new FileLineIterable(file)) {
         String[] columns = DelimitedDataUtils.decode(line);
         long userID = StringLongMapping.toLong(columns[0]);

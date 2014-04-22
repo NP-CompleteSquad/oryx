@@ -119,7 +119,8 @@ public final class BitSet implements Serializable, Cloneable {
 
   /**
    * @param index index from which to look for a set bit
-   * @return the index of the set bit whose index is lowest and >= the given index, or -1 if no such bit exists
+   * @return the index of the set bit whose index is lowest and greater than or equal to
+   *  the given index, or -1 if no such bit exists
    */
   public int nextSetBit(int index) {
     int offset = index >>> 6;

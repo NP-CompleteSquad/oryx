@@ -108,7 +108,7 @@ final class WriteOutputs implements Callable<Object> {
   }
 
   private static void writeIDIDsMap(LongObjectMap<LongSet> idIDs, File idIDsDir) throws IOException {
-    if (idIDs.isEmpty()) {
+    if (idIDs == null || idIDs.isEmpty()) {
       return;
     }
     File outFile = new File(idIDsDir, SINGLE_OUT_FILENAME);
@@ -150,7 +150,7 @@ final class WriteOutputs implements Callable<Object> {
         for (int i = 0; i < floatStrings.length; i++) {
           floatStrings[i] = Float.toString(f[i]);
         }
-        out.write(DelimitedDataUtils.encode(',', floatStrings));
+        out.write(DelimitedDataUtils.encode(',', (Object[]) floatStrings));
         out.write('\n');
       }
     } finally {

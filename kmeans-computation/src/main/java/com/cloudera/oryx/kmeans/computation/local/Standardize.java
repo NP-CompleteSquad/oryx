@@ -40,23 +40,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public final class Standarize implements Callable<List<List<RealVector>>> {
+public final class Standardize implements Callable<List<List<RealVector>>> {
 
-  private static final Logger log = LoggerFactory.getLogger(Standarize.class);
+  private static final Logger log = LoggerFactory.getLogger(Standardize.class);
 
   private final File inputDir;
   private final Summary summary;
 
-  public Standarize(File inputDir, Summary summary) {
+  public Standardize(File inputDir, Summary summary) {
     this.inputDir = inputDir;
     this.summary = summary;
   }
 
   @Override
   public List<List<RealVector>> call() throws IOException {
-    File[] inputFiles = inputDir.listFiles(IOUtils.CSV_COMPRESSED_FILTER);
+    File[] inputFiles = inputDir.listFiles(IOUtils.NOT_HIDDEN);
     if (inputFiles == null || inputFiles.length == 0) {
-      log.info("No .csv input files in {}", inputDir);
+      log.info("No input files in {}", inputDir);
       return null;
     }
 

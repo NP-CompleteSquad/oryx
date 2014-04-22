@@ -47,13 +47,12 @@ public final class AddServlet extends AbstractKMeansServlet {
     }
 
     for (CharSequence line : CharStreams.readLines(request.getReader())) {
-      generationManager.append(line);
-
       RealVector vec = generation.toVector(DelimitedDataUtils.decode(line));
       if (vec == null) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong column count");
         return;
       }
+      generationManager.append(line);
 
       // TODO update the centers, along the lines of Meyerson et al.
     }

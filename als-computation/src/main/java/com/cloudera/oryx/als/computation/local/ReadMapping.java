@@ -41,7 +41,7 @@ final class ReadMapping implements Callable<Object> {
 
   @Override
   public Void call() throws IOException {
-    File[] inputFiles = mappingDir.listFiles(IOUtils.CSV_COMPRESSED_FILTER);
+    File[] inputFiles = mappingDir.listFiles(IOUtils.NOT_HIDDEN);
     if (inputFiles == null || inputFiles.length == 0) {
       return null;
     }

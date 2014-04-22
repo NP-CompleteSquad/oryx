@@ -665,8 +665,8 @@ public final class ServerRecommender implements OryxRecommender, Closeable {
           writeLock.lock();
           try {
             matrix.put(longID, features);
-          } finally {
             readLock.lock();
+          } finally {
             writeLock.unlock();
           }
         }

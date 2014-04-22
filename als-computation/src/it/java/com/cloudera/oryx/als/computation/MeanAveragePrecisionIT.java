@@ -49,7 +49,7 @@ public final class MeanAveragePrecisionIT extends AbstractComputationIT {
   private void copyDataAndRerun(int gen) throws InterruptedException, JobException, IOException {
     File generationInboundDir =
         new File(ConfigUtils.getDefaultConfig().getString("model.instance-dir"), "0000" + gen + "/inbound");
-    for (File file : getTestDataPath().listFiles(IOUtils.CSV_COMPRESSED_FILTER)) {
+    for (File file : getTestDataPath().listFiles(IOUtils.NOT_HIDDEN)) {
       Files.copy(file, new File(generationInboundDir, file.getName()));
     }
     new ALSLocalGenerationRunner().call();

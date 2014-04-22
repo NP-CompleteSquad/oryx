@@ -78,7 +78,7 @@ final class ReadInputs implements Callable<Object> {
   }
 
   private void readInput() throws IOException {
-    File[] inputFiles = inputDir.listFiles(IOUtils.CSV_COMPRESSED_FILTER);
+    File[] inputFiles = inputDir.listFiles(IOUtils.NOT_HIDDEN);
     if (inputFiles == null || inputFiles.length == 0) {
       log.info("No input files in {}", inputDir);
       return;

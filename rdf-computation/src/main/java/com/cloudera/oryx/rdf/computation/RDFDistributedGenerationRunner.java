@@ -15,19 +15,23 @@
 
 package com.cloudera.oryx.rdf.computation;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
-import org.dmg.pmml.IOUtil;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningModel;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.Segment;
+import org.jpmml.model.ImportFilter;
+import org.jpmml.model.JAXBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -98,10 +102,11 @@ public final class RDFDistributedGenerationRunner extends DistributedGenerationR
       for (String treePMMLAsLine : new FileLineIterable(store.readFrom(treePrefix))) {
         PMML treePMML;
         try {
-          treePMML = IOUtil.unmarshal(new InputSource(new StringReader(treePMMLAsLine)));
-        } catch (SAXException e) {
-          throw new IOException(e);
+          treePMML = JAXBUtil.unmarshalPMML(
+              ImportFilter.apply(new InputSource(new StringReader(treePMMLAsLine))));
         } catch (JAXBException e) {
+          throw new IOException(e);
+        } catch (SAXException e) {
           throw new IOException(e);
         }
 
@@ -117,8 +122,18 @@ public final class RDFDistributedGenerationRunner extends DistributedGenerationR
       }
     }
 
+    Preconditions.checkNotNull(joinedForest, "No forests to join?");
+
+    MiningModel model = (MiningModel) joinedForest.getModels().get(0);
+
+    // Renumber segments with distinct IDs
+    List<Segment> segments = model.getSegmentation().getSegments();
+    for (int treeID = 0; treeID < segments.size(); treeID++) {
+      segments.get(treeID).setId(Integer.toString(treeID));
+    }
+
     // Stitch together feature importances
-    for (MiningField field : joinedForest.getModels().get(0).getMiningSchema().getMiningFields()) {
+    for (MiningField field : model.getMiningSchema().getMiningFields()) {
       String name = field.getName().getValue();
       Mean importance = columnNameToMeanImportance.get(name);
       if (importance == null) {
@@ -133,7 +148,7 @@ public final class RDFDistributedGenerationRunner extends DistributedGenerationR
     tempJoinedForestFile.deleteOnExit();
     OutputStream out = IOUtils.buildGZIPOutputStream(new FileOutputStream(tempJoinedForestFile));
     try {
-      IOUtil.marshal(joinedForest, out);
+      JAXBUtil.marshalPMML(joinedForest, new StreamResult(out));
     } catch (JAXBException e) {
       throw new IOException(e);
     } finally {

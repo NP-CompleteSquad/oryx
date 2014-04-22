@@ -48,11 +48,6 @@ import com.cloudera.oryx.common.ClassUtils;
 public final class IOUtils {
 
   /**
-   * A {@link FilenameFilter} that accepts files ending in .csv, .zip or .gz
-   */
-  public static final FilenameFilter CSV_COMPRESSED_FILTER = new PatternFilenameFilter(".+\\.(csv|zip|gz)$");
-
-  /**
    * A {@link FilenameFilter} that accepts files whose name does not start with "."
    */
   public static final FilenameFilter NOT_HIDDEN = new PatternFilenameFilter("^[^.].*");

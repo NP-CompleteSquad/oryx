@@ -30,7 +30,7 @@ public final class PublishMapFn extends OryxMapFn<MatrixRow, String> {
     for (int i = 0; i < stringFeatures.length; i++) {
       stringFeatures[i] = Float.toString(vector[i]);
     }
-    return DelimitedDataUtils.encode(',', stringFeatures);
+    return DelimitedDataUtils.encode(',', (Object[]) stringFeatures);
   }
 
 }

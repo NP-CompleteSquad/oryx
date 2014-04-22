@@ -72,9 +72,7 @@ public final class MemoryHandler extends Handler {
    * <p>Sets the {@code java.util.logging} default output format to something more sensible than the 2-line default.
    * This can be overridden further on the command line. The format is like:</p>
    *
-   * <p><pre>
-   * Mon Nov 26 23:16:09 GMT 2012 INFO Starting service Tomcat
-   * </pre></p>
+   * {@code Mon Nov 26 23:16:09 GMT 2012 INFO Starting service Tomcat}
    */
   public static void setSensibleLogFormat() {
     if (System.getProperty(JAVA7_LOG_FORMAT_PROP) == null) {

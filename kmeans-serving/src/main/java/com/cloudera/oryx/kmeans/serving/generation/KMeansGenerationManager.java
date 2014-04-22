@@ -74,6 +74,8 @@ public final class KMeansGenerationManager extends GenerationManager {
     log.info("Loading model description from {}", modelPMMLKey);
 
     PMML pmmlModel = KMeansPMML.read(modelPMMLFile);
+    IOUtils.delete(modelPMMLFile);
+    log.info("Loaded model description");
 
     modelGeneration = mostRecentModelGeneration;
     //TODO: handle multi-cluster case

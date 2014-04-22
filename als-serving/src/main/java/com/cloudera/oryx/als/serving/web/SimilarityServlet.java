@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -32,9 +33,13 @@ import com.cloudera.oryx.als.common.rescorer.PairRescorer;
 import com.cloudera.oryx.als.common.rescorer.RescorerProvider;
 
 /**
- * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)?howMany=n(&rescorerParams=...)},
+ * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
  * and in turn calls {@link OryxRecommender#mostSimilarItems(String[], int)} with the supplied values.
- * If howMany is not specified, defaults to {@link AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
+ * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
+ * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
+ * will cause the implementation to retrieve 35 results internally and output the last 5.
+ * If {@code howMany} is not specified, defaults to {@link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * {@code offset} defaults to 0.</p>
  *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {@link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
@@ -80,8 +85,8 @@ public final class SimilarityServlet extends AbstractALSServlet {
     OryxRecommender recommender = getRecommender();
     RescorerProvider rescorerProvider = getRescorerProvider();
     try {
-      int howMany = getHowMany(request);
-      Iterable<IDValue> similar;
+      int howMany = getNumResultsToFetch(request);
+      List<IDValue> similar;
       if (rescorerProvider == null) {
         similar = recommender.mostSimilarItems(itemIDs, howMany);
       } else {

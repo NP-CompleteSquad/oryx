@@ -27,9 +27,13 @@ import com.cloudera.oryx.als.common.NotReadyException;
 import com.cloudera.oryx.als.common.OryxRecommender;
 
 /**
- * <p>Responds to a GET request to {@code /because/[userID]/[itemID]?howMany=n}, and in turn calls
- * {@link OryxRecommender#recommendedBecause(String, String, int)}. If howMany is not specified, defaults to
-  * {@link AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
+ * <p>Responds to a GET request to {@code /because/[userID]/[itemID](?howMany=n)(&offset=o)},
+ * and in turn calls {@link OryxRecommender#recommendedBecause(String, String, int)}.
+ * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
+ * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
+ * will cause the implementation to retrieve 35 results internally and output the last 5.
+ * If {@code howMany} is not specified, defaults to {@link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * {@code offset} defaults to 0.</p>
  *
  * <p>Outputs item/score pairs like {@link RecommendServlet} does.</p>
  *
@@ -65,7 +69,9 @@ public final class BecauseServlet extends AbstractALSServlet {
 
     OryxRecommender recommender = getRecommender();
     try {
-      output(request, response, recommender.recommendedBecause(userID, itemID, getHowMany(request)));
+      output(request,
+             response,
+             recommender.recommendedBecause(userID, itemID, getNumResultsToFetch(request)));
     } catch (NoSuchUserException nsue) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND, nsue.toString());
     } catch (NoSuchItemException nsie) {

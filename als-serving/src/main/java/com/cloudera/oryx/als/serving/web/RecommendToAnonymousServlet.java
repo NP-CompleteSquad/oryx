@@ -34,11 +34,15 @@ import com.cloudera.oryx.als.common.rescorer.RescorerProvider;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)?howMany=n[&rescorerParams=...]},
+ * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
  * and in turn calls {@link OryxRecommender#recommendToAnonymous(String[], float[], int, Rescorer)}
  * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
- * a value or else default to 1. If howMany is not specified, defaults to
- * {@link AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
+ * a value or else default to 1.
+ * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
+ * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
+ * will cause the implementation to retrieve 35 results internally and output the last 5.
+ * If {@code howMany} is not specified, defaults to {@link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * {@code offset} defaults to 0.</p>
  *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {@link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
@@ -83,7 +87,9 @@ public final class RecommendToAnonymousServlet extends AbstractALSServlet {
     try {
       Rescorer rescorer = rescorerProvider == null ? null :
           rescorerProvider.getRecommendToAnonymousRescorer(itemIDs, recommender, getRescorerParams(request));
-      output(request, response, recommender.recommendToAnonymous(itemIDs, values, getHowMany(request), rescorer));
+      output(request,
+             response,
+             recommender.recommendToAnonymous(itemIDs, values, getNumResultsToFetch(request), rescorer));
     } catch (NotReadyException nre) {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     } catch (NoSuchItemException nsie) {

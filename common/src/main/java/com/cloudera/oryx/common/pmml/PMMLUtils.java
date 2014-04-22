@@ -116,27 +116,28 @@ public final class PMMLUtils {
   public static MiningSchema buildMiningSchema(InboundSettings inboundSettings, double[] importances) {
     List<String> columnNames = inboundSettings.getColumnNames();
     Integer targetColumn = inboundSettings.getTargetColumn();
+    Collection<Integer> ignored = inboundSettings.getIgnoredColumns();
+    Collection<Integer> ids = inboundSettings.getIdColumns();
+    Collection<Integer> numeric = inboundSettings.getNumericColumns();
+    Collection<Integer> categorical = inboundSettings.getCategoricalColumns();
     Collection<MiningField> miningFields = Lists.newArrayList();
-    for (int categoricalColumn : inboundSettings.getCategoricalColumns()) {
-      MiningField field = new MiningField(new FieldName(columnNames.get(categoricalColumn)));
-      field.setOptype(OpType.CATEGORICAL);
-      if (targetColumn != null && categoricalColumn == targetColumn) {
-        field.setUsageType(FieldUsageType.PREDICTED);
-      } else {
-        if (importances != null) {
-          field.setImportance(importances[categoricalColumn]);
-        }
+    for (int col = 0; col < columnNames.size(); col++) {
+      if (ignored.contains(col) || ids.contains(col)) {
+        continue;
       }
-      miningFields.add(field);
-    }
-    for (int numericColumn : inboundSettings.getNumericColumns()) {
-      MiningField field = new MiningField(new FieldName(columnNames.get(numericColumn)));
-      field.setOptype(OpType.CONTINUOUS);
-      if (targetColumn != null && numericColumn == targetColumn) {
+      MiningField field = new MiningField(new FieldName(columnNames.get(col)));
+      if (numeric.contains(col)) {
+        field.setOptype(OpType.CONTINUOUS);
+      } else if (categorical.contains(col)) {
+        field.setOptype(OpType.CATEGORICAL);
+      } else {
+        throw new IllegalStateException("No type for col " + col);
+      }
+      if (targetColumn != null && col == targetColumn) {
         field.setUsageType(FieldUsageType.PREDICTED);
       } else {
         if (importances != null) {
-          field.setImportance(importances[numericColumn]);
+          field.setImportance(importances[col]);
         }
       }
       miningFields.add(field);

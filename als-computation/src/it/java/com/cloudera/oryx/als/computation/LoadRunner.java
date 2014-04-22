@@ -69,7 +69,7 @@ public final class LoadRunner implements Callable<Object> {
     log.info("Reading IDs...");    
     Set<String> userIDsSet = Sets.newHashSet();
     Set<String> itemIDsSet = Sets.newHashSet();
-    for (File f : dataDirectory.listFiles(IOUtils.CSV_COMPRESSED_FILTER)) {
+    for (File f : dataDirectory.listFiles(IOUtils.NOT_HIDDEN)) {
       if (!f.getName().contains("oryx-append")) {
         for (CharSequence line : new FileLineIterable(f)) {
           String[] columns = DelimitedDataUtils.decode(line);

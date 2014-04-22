@@ -47,7 +47,7 @@ final class SplitTestTrain implements Callable<Object> {
 
   @Override
   public Void call() throws IOException {
-    File[] inputFiles = inboundDir.listFiles(IOUtils.CSV_COMPRESSED_FILTER);
+    File[] inputFiles = inboundDir.listFiles(IOUtils.NOT_HIDDEN);
     if (inputFiles == null || inputFiles.length == 0) {
       log.info("No input files in {}", inboundDir);
       return null;

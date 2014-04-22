@@ -29,11 +29,13 @@ import com.cloudera.oryx.als.common.rescorer.RescorerProvider;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommend/[userID](?howMany=n)(&considerKnownItems=true|false)(&rescorerParams=...)}
- * and in turn calls
- * {@link OryxRecommender#recommend(String, int)}. If {@code howMany} is not specified, defaults to
- * {@link AbstractALSServlet#DEFAULT_HOW_MANY}. If {@code considerKnownItems} is not specified,
- * it is considered {@code false}.</p>
+ * {@code /recommend/[userID](?howMany=n)(&offset=o)(&considerKnownItems=true|false)(&rescorerParams=...)}
+ * and in turn calls {@link OryxRecommender#recommend(String, int)}.
+ * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
+ * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
+ * will cause the implementation to retrieve 35 results internally and output the last 5.
+ * If {@code howMany} is not specified, defaults to {@link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * {@code offset} defaults to 0.</p>
  *
  * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
@@ -71,7 +73,7 @@ public final class RecommendServlet extends AbstractALSServlet {
       Rescorer rescorer = rescorerProvider == null ? null :
           rescorerProvider.getRecommendRescorer(new String[] {userID}, recommender, getRescorerParams(request));
       output(request, response, recommender.recommend(userID,
-                                                      getHowMany(request),
+                                                      getNumResultsToFetch(request),
                                                       getConsiderKnownItems(request),
                                                       rescorer));
     } catch (NoSuchUserException nsue) {

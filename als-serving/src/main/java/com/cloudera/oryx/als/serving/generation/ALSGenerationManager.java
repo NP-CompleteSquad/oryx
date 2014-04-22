@@ -60,7 +60,7 @@ public final class ALSGenerationManager extends GenerationManager {
    * @return an instance of the latest {@link Generation} that has been made available by the
    * implementation.
    */
-  public synchronized Generation getCurrentGeneration() {
+  public Generation getCurrentGeneration() {
     return currentGeneration;
   }
 

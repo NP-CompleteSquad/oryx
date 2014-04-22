@@ -37,7 +37,8 @@ import java.util.NoSuchElementException;
 import com.google.common.base.Preconditions;
 
 /**
- * While long[] is an Iterable, it is not an {@code Iterable<Long>}</Long>. This adapter class addresses that.
+ * While long[] is an Iterable, it is not an {@code Iterable<Long>}.
+ * This adapter class addresses that.
  *
  * @author Sean Owen
  * @author Mahout
