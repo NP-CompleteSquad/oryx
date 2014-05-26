@@ -15,11 +15,16 @@
 
 package com.cloudera.oryx.common.parallel;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +59,16 @@ public final class ExecutorUtils {
     return Runtime.getRuntime().availableProcessors();
   }
 
+  public static ExecutorService buildExecutor(String name) {
+    return buildExecutor(name, getParallelism());
+  }
+
+  public static ExecutorService buildExecutor(String name, int parallelism) {
+    ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat(name + "-%d").setDaemon(true).build();
+    log.info("Executing {} with parallelism {}", name, parallelism);
+    return Executors.newFixedThreadPool(parallelism, factory);
+  }
+
   /**
    * Immediately shuts down its argument and waits a short time for it to terminate.
    */
@@ -62,27 +77,11 @@ public final class ExecutorUtils {
       if (!executor.isShutdown()) {
         executor.shutdownNow();
       }
-      await(executor);
-    }
-  }
-
-  /**
-   * Shuts down its argument, letting tasks finish, and waits a short time for it to terminate.
-   */
-  public static void shutdownAndAwait(ExecutorService executor) {
-    if (!executor.isTerminated()) {
-      if (!executor.isShutdown()) {
-        executor.shutdown();
+      try {
+        executor.awaitTermination(5L, TimeUnit.SECONDS);
+      } catch (InterruptedException ignored) {
+        log.warn("Interrupted while shutting down executor");
       }
-      await(executor);
-    }
-  }
-
-  private static void await(ExecutorService executor) {
-    try {
-      executor.awaitTermination(5L, TimeUnit.SECONDS);
-    } catch (InterruptedException ignored) {
-      log.warn("Interrupted while shutting down executor");
     }
   }
 
@@ -91,16 +90,18 @@ public final class ExecutorUtils {
    *
    * @throws IllegalStateException if any generated an exception
    */
-  public static <T> void checkExceptions(Iterable<Future<T>> futures) {
-    for (Future<?> future : futures) {
+  public static <T> List<T> getResults(Iterable<Future<T>> futures) {
+    List<T> results = Lists.newArrayList();
+    for (Future<T> future : futures) {
       try {
-        future.get();
+        results.add(future.get());
       } catch (InterruptedException e) {
         throw new IllegalStateException(e);
       } catch (ExecutionException e) {
         throw new IllegalStateException(e.getCause());
       }
     }
+    return results;
   }
 
 }

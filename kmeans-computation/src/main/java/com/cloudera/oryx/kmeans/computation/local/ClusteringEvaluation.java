@@ -25,17 +25,12 @@ import com.cloudera.oryx.kmeans.computation.evaluate.KMeansEvaluationData;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.typesafe.config.Config;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 public final class ClusteringEvaluation implements Callable<List<KMeansEvaluationData>> {
 
@@ -46,45 +41,44 @@ public final class ClusteringEvaluation implements Callable<List<KMeansEvaluatio
   }
 
   @Override
-  public List<KMeansEvaluationData> call() throws InterruptedException, ExecutionException {
+  public List<KMeansEvaluationData> call() {
     Config config = ConfigUtils.getDefaultConfig();
     EvaluationSettings settings = EvaluationSettings.create(config);
 
-    ListeningExecutorService exec = MoreExecutors.listeningDecorator(
-        Executors.newFixedThreadPool(config.getInt("model.parallelism"),
-            new ThreadFactoryBuilder().setNameFormat("KMEANS-%d").setDaemon(true).build()));
-    List<ListenableFuture<KMeansEvaluationData>> futures = Lists.newArrayList();
-    for (Integer nc : settings.getKValues()) {
-      int loops = nc == 1 ? 1 : settings.getReplications();
-      for (int i = 0; i < loops; i++) {
-        futures.add(exec.submit(new EvaluationRun(weightedPoints, nc, i, settings)));
+    List<KMeansEvaluationData> evalData;
+    ExecutorService exec = ExecutorUtils.buildExecutor("KMEANS");
+    try {
+      List<Future<KMeansEvaluationData>> futures = Lists.newArrayList();
+      for (Integer nc : settings.getKValues()) {
+        int loops = nc == 1 ? 1 : settings.getReplications();
+        for (int i = 0; i < loops; i++) {
+          futures.add(exec.submit(new EvaluationRun(weightedPoints, nc, i, settings)));
+        }
       }
+      evalData = ExecutorUtils.getResults(futures);
+    } finally {
+      ExecutorUtils.shutdownNowAndAwait(exec);
     }
 
-    try {
-      List<KMeansEvaluationData> evalData = Futures.allAsList(futures).get();
-      KMeansEvalStrategy evalStrategy = settings.getEvalStrategy();
-      if (evalStrategy != null) {
-        List<ClusterValidityStatistics> best = evalStrategy.evaluate(Lists.transform(evalData,
-            new Function<KMeansEvaluationData, ClusterValidityStatistics>() {
-              @Override
-              public ClusterValidityStatistics apply(KMeansEvaluationData input) {
-                return input.getClusterValidityStatistics();
-              }
-            }));
-        if (best.size() == 1) {
-          ClusterValidityStatistics cvs = best.get(0);
-          for (KMeansEvaluationData ed : evalData) {
-            if (cvs.getK() == ed.getK() && cvs.getReplica() == ed.getReplica()) {
-              return ImmutableList.of(ed);
+    KMeansEvalStrategy evalStrategy = settings.getEvalStrategy();
+    if (evalStrategy != null) {
+      List<ClusterValidityStatistics> best = evalStrategy.evaluate(Lists.transform(evalData,
+          new Function<KMeansEvaluationData, ClusterValidityStatistics>() {
+            @Override
+            public ClusterValidityStatistics apply(KMeansEvaluationData input) {
+              return input.getClusterValidityStatistics();
             }
+          }));
+      if (best.size() == 1) {
+        ClusterValidityStatistics cvs = best.get(0);
+        for (KMeansEvaluationData ed : evalData) {
+          if (cvs.getK() == ed.getK() && cvs.getReplica() == ed.getReplica()) {
+            return ImmutableList.of(ed);
           }
         }
       }
-      return evalData;
-    } finally {
-      ExecutorUtils.shutdownAndAwait(exec);
     }
+    return evalData;
   }
 
 }

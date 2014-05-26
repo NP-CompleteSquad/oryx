@@ -20,13 +20,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +80,7 @@ final class GenerationLoader {
 
     Collection<Future<Object>> futures = Lists.newArrayList();
     // Limit this fairly sharply to 2 so as to not saturate the network link
-    ExecutorService executor = Executors.newFixedThreadPool(
-        2,
-        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("LoadModel-%d").build());
+    ExecutorService executor = ExecutorUtils.buildExecutor("LoadModel", 2);
 
     LongSet loadedUserIDs;
     LongSet loadedItemIDs;
@@ -106,16 +102,15 @@ final class GenerationLoader {
 
       loadIDMapping(generationPrefix, modelDescription, currentGeneration, futures, executor);
 
-      ExecutorUtils.checkExceptions(futures);
-
+      ExecutorUtils.getResults(futures);
       log.info("Finished all load tasks");
       
     } finally {
       ExecutorUtils.shutdownNowAndAwait(executor);
     }
 
+    log.info("Pruning old entries...");
     synchronized (lockForRecent) {
-      log.info("Pruning old entries...");
       removeNotUpdated(currentGeneration.getX().keySetIterator(),
                        loadedUserIDs,
                        recentlyActiveUsers,

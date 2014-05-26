@@ -188,9 +188,8 @@ public final class LoadRunner implements Callable<Object> {
     } finally {
       ExecutorUtils.shutdownNowAndAwait(executor);
     }
+    ExecutorUtils.getResults(futures);
     long end = System.currentTimeMillis();
-
-    ExecutorUtils.checkExceptions(futures);
 
     log.info("Finished {} steps in {}ms", steps, end - start);
 

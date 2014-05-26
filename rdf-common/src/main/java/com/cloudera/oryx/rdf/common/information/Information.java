@@ -36,7 +36,7 @@ public final class Information {
    * @param decisions list of possible {@link Decision}s to consider to split the examples in {@link ExampleSet}
    * @param examples {@link ExampleSet} of examples to evaluate {@link Decision}s over
    * @return the best {@link Decision} from {@code decisions} -- the one that maximizes information gain --
-   *  along with the information gain it achievies, in nats
+   *  along with the information gain it achieves, in nats
    */
   public static Pair<Decision,Double> bestGain(Iterable<Decision> decisions, ExampleSet examples) {
     switch (examples.getTargetType()) {

@@ -104,12 +104,14 @@ public final class NamedRealVector extends RealVector implements Serializable {
     return delegate.copy();
   }
 
+  @SuppressWarnings("deprecation")
   @Deprecated
   @Override
   public RealVector ebeDivide(RealVector v) {
     return delegate.ebeDivide(v);
   }
 
+  @SuppressWarnings("deprecation")
   @Deprecated
   @Override
   public RealVector ebeMultiply(RealVector v) {

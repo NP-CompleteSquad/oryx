@@ -26,6 +26,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.List;
 
@@ -45,7 +46,13 @@ public final class CentersIndexLoader implements Serializable {
   private KSketchIndex getIndex(String modelsFile) throws IOException {
     Store store = Store.get();
     try {
-      PMML pmml = KMeansPMML.read(store.streamFrom(modelsFile));
+      PMML pmml;
+      InputStream in = store.streamFrom(modelsFile);
+      try {
+        pmml = KMeansPMML.read(in);
+      } finally {
+        in.close();
+      }
       List<Model> models = pmml.getModels();
       KSketchIndex index = new KSketchIndex(models.size(), getDimension(models),
           clusterSettings.getIndexBits(), clusterSettings.getIndexSamples(), 1729L);

@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.als.computation.merge;
 
+import com.google.common.base.Preconditions;
 import org.apache.crunch.Emitter;
 import org.apache.crunch.Pair;
 
@@ -27,6 +28,7 @@ public final class MappingParseFn extends OryxDoFn<String, Pair<Long, String>> {
   @Override
   public void process(String line, Emitter<Pair<Long, String>> emitter) {
     String[] columns = DelimitedDataUtils.decode(line);
+    Preconditions.checkArgument(columns.length >= 2, "Line does not have at least two columns: %s", line);
 
     String userID = columns[0];
     String itemID = columns[1];

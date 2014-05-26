@@ -22,11 +22,6 @@ import com.cloudera.oryx.kmeans.common.WeightedRealVector;
 import com.cloudera.oryx.kmeans.computation.cluster.ClusterSettings;
 import com.cloudera.oryx.kmeans.computation.cluster.KSketchIndex;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.typesafe.config.Config;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -36,8 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public final class WeightedPointsByFold implements Callable<List<List<WeightedRealVector>>> {
@@ -51,46 +45,37 @@ public final class WeightedPointsByFold implements Callable<List<List<WeightedRe
   }
 
   @Override
-  public List<List<WeightedRealVector>> call() throws InterruptedException, ExecutionException {
+  public List<List<WeightedRealVector>> call() {
     Config config = ConfigUtils.getDefaultConfig();
     ClusterSettings cluster = ClusterSettings.create(config);
     KSketchIndex index = buildIndex(foldVecs, cluster);
     int pointsPerIteration = cluster.getSketchPoints();
     RandomGenerator random = RandomManager.getRandom();
 
-    ListeningExecutorService exec = MoreExecutors.listeningDecorator(
-        Executors.newFixedThreadPool(config.getInt("model.parallelism"),
-            new ThreadFactoryBuilder().setNameFormat("KSKETCH-%d").setDaemon(true).build()));
-    for (int iter = 0; iter < cluster.getSketchIterations(); iter++) {
-      log.info("Starting sketch iteration {}", iter + 1);
-      List<ListenableFuture<Collection<RealVector>>> futures = Lists.newArrayList();
-      for (int foldId = 0; foldId < foldVecs.size(); foldId++) {
-        futures.add(exec.submit(
-            new SamplingRun(index, random, foldId, foldVecs.get(foldId), pointsPerIteration)));
-      }
-      // At the end of each iteration, gather up the sampled points to add to the index
-      Future<List<Collection<RealVector>>> all = Futures.allAsList(futures);
-      try {
-        List<Collection<RealVector>> newSamples = all.get();
+    ExecutorService exec = ExecutorUtils.buildExecutor("KSKETCH");
+    try {
+      for (int iter = 0; iter < cluster.getSketchIterations(); iter++) {
+        log.info("Starting sketch iteration {}", iter + 1);
+        List<Future<Collection<RealVector>>> futures = Lists.newArrayList();
+        for (int foldId = 0; foldId < foldVecs.size(); foldId++) {
+          futures.add(exec.submit(
+              new SamplingRun(index, random, foldId, foldVecs.get(foldId), pointsPerIteration)));
+        }
+        // At the end of each iteration, gather up the sampled points to add to the index
+        List<Collection<RealVector>> newSamples = ExecutorUtils.getResults(futures);
         for (int foldId = 0; foldId < foldVecs.size(); foldId++) {
           for (RealVector v : newSamples.get(foldId)) {
             index.add(v, foldId);
           }
         }
-      } catch (ExecutionException e) {
-        ExecutorUtils.shutdownNowAndAwait(exec);
-        all.cancel(true);
-        throw e;
+        index.rebuildIndices();
       }
-      index.rebuildIndices();
-    }
 
-    List<ListenableFuture<List<WeightedRealVector>>> ret = Lists.newArrayList();
-    for (int foldId = 0; foldId < foldVecs.size(); foldId++) {
-      ret.add(exec.submit(new AssignmentRun(index, foldId, foldVecs.get(foldId))));
-    }
-    try {
-      return Futures.allAsList(ret).get();
+      List<Future<List<WeightedRealVector>>> ret = Lists.newArrayList();
+      for (int foldId = 0; foldId < foldVecs.size(); foldId++) {
+        ret.add(exec.submit(new AssignmentRun(index, foldId, foldVecs.get(foldId))));
+      }
+      return ExecutorUtils.getResults(ret);
     } finally {
       ExecutorUtils.shutdownNowAndAwait(exec);
     }

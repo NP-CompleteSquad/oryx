@@ -33,7 +33,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.parallel.ExecutorUtils;
 import com.cloudera.oryx.common.servcomp.Namespaces;
 import com.cloudera.oryx.common.servcomp.Store;
 import com.cloudera.oryx.common.servcomp.StoreUtils;
@@ -235,8 +234,13 @@ public abstract class GenerationManager implements Closeable {
 
   @Override
   public final synchronized void close() {
-    ExecutorUtils.shutdownAndAwait(executorService); // Let others complete
+    executorService.shutdown();
     closeAppender();
+    try {
+      executorService.awaitTermination(10, TimeUnit.MINUTES); // How long to reasonably wait for uploads??
+    } catch (InterruptedException e) {
+      log.warn("Uploads timed out!");
+    }
   }
 
   /**

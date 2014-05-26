@@ -265,6 +265,8 @@ public abstract class JobStep extends Configured implements Tool, HasState {
     conf.setInt(MRJobConfig.JVM_NUMTASKS_TORUN, -1);
 
     //conf.setBoolean("crunch.disable.deep.copy", true);
+    // Giving one mapper a lot of data can cause issues in some stages, so default to disable this
+    conf.setBoolean("crunch.disable.combine.file", true);
 
     Config appConfig = ConfigUtils.getDefaultConfig();
 
@@ -318,8 +320,7 @@ public abstract class JobStep extends Configured implements Tool, HasState {
     Job job = Job.getInstance(conf);
 
     // Basic File IO settings
-    FileInputFormat.setMaxInputSplitSize(job, 1L << 30); // ~1073MB
-    FileInputFormat.setMinInputSplitSize(job, 1L << 27); // ~134MB
+    FileInputFormat.setMaxInputSplitSize(job, 1L << 28); // ~268MB
     SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
     FileOutputFormat.setCompressOutput(job, true);
     FileOutputFormat.setOutputCompressorClass(job, SnappyCodec.class);

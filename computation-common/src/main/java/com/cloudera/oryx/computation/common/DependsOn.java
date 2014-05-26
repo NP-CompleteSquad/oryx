@@ -52,8 +52,8 @@ public final class DependsOn<T> {
   /**
    * Convenience factory method for {@link #DependsOn(Object, Object)}
    */
-  public static <T> DependsOn<T> nextAfterFirst(T happensNext, T happenstFirst) {
-    return new DependsOn<T>(happensNext, happenstFirst);
+  public static <T> DependsOn<T> nextAfterFirst(T happensNext, T happensFirst) {
+    return new DependsOn<T>(happensNext, happensFirst);
   }
 
   /**

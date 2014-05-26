@@ -20,13 +20,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.typesafe.config.Config;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -184,13 +182,7 @@ public final class AlternatingLeastSquares implements MatrixFactorizer {
     Y = constructInitialY(previousY);
 
     // This will be used to compute rows/columns in parallel during iteration
-
-    int numThreads = ExecutorUtils.getParallelism();
-    ExecutorService executor =
-        Executors.newFixedThreadPool(numThreads,
-                                     new ThreadFactoryBuilder().setNameFormat("ALS-%d").setDaemon(true).build());
-
-    log.info("Iterating using {} threads", numThreads);
+    ExecutorService executor = ExecutorUtils.buildExecutor("ALS");
 
     RandomGenerator random = RandomManager.getRandom();
     long[] testUserIDs = RandomUtils.chooseAboutNFromStream(NUM_USER_ITEMS_TO_TEST_CONVERGENCE, 

@@ -17,6 +17,7 @@ package com.cloudera.oryx.serving.web;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentMap;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HttpHeaders;
 
@@ -132,33 +134,37 @@ public abstract class AbstractOryxServlet extends HttpServlet {
 
   protected final void output(HttpServletRequest request,
                               ServletResponse response,
-                              float... values) throws IOException {
+                              List<?> values) throws IOException {
+    if (values.isEmpty()) {
+      return;
+    }
     Writer writer = response.getWriter();
     switch (determineResponseType(request)) {
       case JSON:
         response.setContentType("application/json");
         // Single value written alone
-        if (values.length == 1) {
-          writer.write(Float.toString(values[0]));
+        if (values.size() == 1) {
+          writer.write(String.valueOf(values.get(0)));
+          writer.write('\n');
         } else {
           // Many values written as array
           writer.write('[');
           boolean first = true;
-          for (float value : values) {
+          for (Object value : values) {
             if (first) {
               first = false;
             } else {
               writer.write(',');
             }
-            writer.write(Float.toString(value));
+            writer.write(String.valueOf(value));
           }
           writer.write("]\n");
         }
         break;
       case DELIMITED:
         // Leave content type at default
-        for (float value : values) {
-          writer.write(Float.toString(value));
+        for (Object value : values) {
+          writer.write(String.valueOf(value));
           writer.write('\n');
         }
         break;
@@ -169,37 +175,24 @@ public abstract class AbstractOryxServlet extends HttpServlet {
 
   protected final void output(HttpServletRequest request,
                               ServletResponse response,
-                              double... values) throws IOException {
-    Writer writer = response.getWriter();
-    switch (determineResponseType(request)) {
-      case JSON:
-        // Single value written alone
-        if (values.length == 1) {
-          writer.write(Double.toString(values[0]));
-        } else {
-          // Many values written as array
-          writer.write('[');
-          boolean first = true;
-          for (double value : values) {
-            if (first) {
-              first = false;
-            } else {
-              writer.write(',');
-            }
-            writer.write(Double.toString(value));
-          }
-          writer.write("]\n");
-        }
-        break;
-      case DELIMITED:
-        for (double value : values) {
-          writer.write(Double.toString(value));
-          writer.write('\n');
-        }
-        break;
-      default:
-        throw new IllegalStateException("Unknown response type");
+                              float[] values) throws IOException {
+    // Have to translate, so go straight to Strings
+    List<String> stringValues = Lists.newArrayListWithCapacity(values.length);
+    for (float value : values) {
+      stringValues.add(Float.toString(value));
     }
+    output(request, response, stringValues);
+  }
+
+  protected final void output(HttpServletRequest request,
+                              ServletResponse response,
+                              double[] values) throws IOException {
+    // Have to translate, so go straight to Strings
+    List<String> stringValues = Lists.newArrayListWithCapacity(values.length);
+    for (double value : values) {
+      stringValues.add(Double.toString(value));
+    }
+    output(request, response, stringValues);
   }
 
   /**

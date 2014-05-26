@@ -404,7 +404,7 @@ public final class DecisionForestPMML {
       decision = new NumericDecision(featureNumber, threshold, defaultDecision);
 
     } else {
-      // Cateogrical decision
+      // Categorical decision
       Preconditions.checkArgument(predicate instanceof SimpleSetPredicate);
       SimpleSetPredicate simpleSetPredicate = (SimpleSetPredicate) predicate;
       Preconditions.checkArgument(simpleSetPredicate.getBooleanOperator() == SimpleSetPredicate.BooleanOperator.IS_IN);

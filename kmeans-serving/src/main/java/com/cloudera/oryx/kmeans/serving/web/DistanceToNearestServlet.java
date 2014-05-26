@@ -28,7 +28,7 @@ import com.cloudera.oryx.common.io.DelimitedDataUtils;
 import com.cloudera.oryx.kmeans.serving.generation.Generation;
 
 /**
- * <p>Responsds to a GET request to {@code /distanceToNearest/[datum]}. The input is one data point to cluster,
+ * <p>Responds to a GET request to {@code /distanceToNearest/[datum]}. The input is one data point to cluster,
  * delimited, like "1,-4,3.0". The response body contains the distance to the nearest cluster, on one line.</p>
  *
  * @author Sean Owen

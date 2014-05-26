@@ -27,7 +27,7 @@ import com.cloudera.oryx.kmeans.serving.generation.Generation;
 import com.cloudera.oryx.kmeans.serving.generation.KMeansGenerationManager;
 
 /**
- * <p>Responsds to POST request to {@code /add}. The input is one or more data points
+ * <p>Responds to POST request to {@code /add}. The input is one or more data points
  * to add to the clustering, one for each line of the request body. Each data point is a delimited line of input like
  * "1,-4,3.0". The clusters update to learn in some way from the new data. The response is empty.</p>
  *

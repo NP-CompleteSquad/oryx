@@ -277,6 +277,17 @@ public interface OryxRecommender {
   List<IDValue> mostPopularItems(int howMany, Rescorer rescorer) throws NotReadyException;
 
   /**
+   * This is an experimental novelty method, that constructs a list of items that is
+   * in some way representative of the range of items in the model. That is, the items will
+   * tend to be different from each other, and popular. Specifically, it is "recommending"
+   * one item to each of the latent features in the model.
+   *
+   * @return a list of item IDs, one for each latent feature in the model
+   * @throws NotReadyException if the implementation has no usable model yet
+   */
+  List<String> popularRepresentativeItems() throws NotReadyException;
+
+  /**
    * @param toItemID item to calculate similarity to
    * @param itemIDs items to calculate similarity from
    * @return similarity of each item to the given. The values are opaque; higher means more similar.

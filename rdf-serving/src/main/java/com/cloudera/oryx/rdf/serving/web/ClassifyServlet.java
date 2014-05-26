@@ -36,7 +36,7 @@ import com.cloudera.oryx.rdf.common.tree.TreeBasedClassifier;
 import com.cloudera.oryx.rdf.serving.generation.Generation;
 
 /**
- * <p>Responsds to a GET request to {@code /classify/[datum]}. The input is one data point to classify,
+ * <p>Responds to a GET request to {@code /classify/[datum]}. The input is one data point to classify,
  * delimited, like "1,foo,3.0". The response body contains the result of classification on one line.
  * The result depends on the classifier --  could be a number or a category name.</p>
  *
@@ -67,8 +67,6 @@ public final class ClassifyServlet extends AbstractRDFServlet {
 
     Map<Integer,BiMap<String,Integer>> columnToCategoryNameToIDMapping =
         generation.getColumnToCategoryNameToIDMapping();
-    Map<Integer,String> targetIDToCategory =
-        columnToCategoryNameToIDMapping.get(inboundSettings.getTargetColumn()).inverse();
 
     int totalColumns = getTotalColumns();
 
@@ -97,6 +95,8 @@ public final class ClassifyServlet extends AbstractRDFServlet {
     Prediction prediction = forest.classify(example);
 
     if (prediction.getFeatureType() == FeatureType.CATEGORICAL) {
+      Map<Integer,String> targetIDToCategory =
+          columnToCategoryNameToIDMapping.get(inboundSettings.getTargetColumn()).inverse();
       int categoryID = ((CategoricalPrediction) prediction).getMostProbableCategoryID();
       out.write(targetIDToCategory.get(categoryID));
     } else {

@@ -33,6 +33,7 @@ public final class SplitTestFn extends OryxDoFn<String, Pair<String, String>> {
 
   @Override
   public void initialize() {
+    super.initialize();
     random = RandomManager.getRandom();
   }
 

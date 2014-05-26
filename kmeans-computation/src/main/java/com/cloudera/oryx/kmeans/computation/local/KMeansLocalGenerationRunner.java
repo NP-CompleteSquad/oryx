@@ -19,7 +19,6 @@ import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.servcomp.Namespaces;
 import com.cloudera.oryx.common.servcomp.Store;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.computation.common.JobException;
 import com.cloudera.oryx.computation.common.LocalGenerationRunner;
 import com.cloudera.oryx.computation.common.summary.Summary;
 import com.cloudera.oryx.kmeans.common.ClusterValidityStatistics;
@@ -43,11 +42,10 @@ import org.dmg.pmml.Model;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public final class KMeansLocalGenerationRunner extends LocalGenerationRunner {
   @Override
-  protected void runSteps() throws IOException, InterruptedException, JobException {
+  protected void runSteps() throws IOException {
     String instanceDir = getInstanceDir();
     int generationID = getGenerationID();
     String generationPrefix = Namespaces.getInstanceGenerationPrefix(instanceDir, generationID);
@@ -109,8 +107,6 @@ public final class KMeansLocalGenerationRunner extends LocalGenerationRunner {
         Files.write(Joiner.on("\n").join(assignments) + '\n', new File(outlierDir, "data.csv"), Charsets.UTF_8);
       }
       store.uploadDirectory(generationPrefix, tempOutDir, false);
-    } catch (ExecutionException ee) {
-      throw new JobException(ee.getCause());
     } finally {
       IOUtils.deleteRecursively(tempOutDir);
     }

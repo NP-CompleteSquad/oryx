@@ -41,35 +41,35 @@ public final class RunningStatistics implements Serializable {
   /**
    * @return number of values that {@link #increment(double)} has been called on.
    */
-  public long getCount() {
+  public synchronized long getCount() {
     return mean.getN();
   }
 
   /**
    * @return mean of all values that {@link #increment(double)} has been called with.
    */
-  public double getMean() {
+  public synchronized double getMean() {
     return mean.getResult();
   }
 
   /**
    * @return minimum of all values passed to {@link #increment(double)}
    */
-  public double getMin() {
+  public synchronized double getMin() {
     return min.getResult();
   }
 
   /**
    * @return maximum of all values passed to {@link #increment(double)}
    */
-  public double getMax() {
+  public synchronized double getMax() {
     return max.getResult();
   }
 
   /**
    * @param value add a new value to the running statistics
    */
-  public void increment(double value) {
+  public synchronized void increment(double value) {
     mean.increment(value);
     min.increment(value);
     max.increment(value);

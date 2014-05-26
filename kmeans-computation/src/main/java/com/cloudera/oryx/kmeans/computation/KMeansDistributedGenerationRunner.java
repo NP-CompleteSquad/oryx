@@ -26,7 +26,6 @@ import com.cloudera.oryx.kmeans.computation.outlier.OutlierStep;
 import com.cloudera.oryx.kmeans.computation.summary.SummaryStep;
 import com.google.common.collect.Lists;
 
-import java.io.IOException;
 import java.util.List;
 
 import com.cloudera.oryx.computation.common.DependsOn;
@@ -42,7 +41,7 @@ public final class KMeansDistributedGenerationRunner extends DistributedGenerati
   private static final Logger log = LoggerFactory.getLogger(KMeansDistributedGenerationRunner.class);
 
   @Override
-  protected void doPre() throws IOException {
+  protected void doPre() {
     // Verify that id-columns are provided in the config if outlier computations are enabled.
     Config config = ConfigUtils.getDefaultConfig();
     if (doOutlierComputation(config)) {
@@ -85,7 +84,7 @@ public final class KMeansDistributedGenerationRunner extends DistributedGenerati
     return postDeps;
   }
 
-  private boolean doOutlierComputation(Config config) {
+  private static boolean doOutlierComputation(Config config) {
     return config.hasPath("model.outliers") && config.getBoolean("model.outliers.compute");
   }
 

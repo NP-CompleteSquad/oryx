@@ -23,7 +23,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.junit.Test;
@@ -39,7 +38,7 @@ import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.random.RandomUtils;
 
 /**
- * A long-runnign integration test for {@link LocationSensitiveHash}.
+ * A long-running integration test for {@link LocationSensitiveHash}.
  *
  * @author Sean Owen
  */

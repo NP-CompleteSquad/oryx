@@ -45,6 +45,7 @@ public final class CentersOutputFn extends OryxDoFn<KMeansEvaluationData, String
 
   @Override
   public void initialize() {
+    super.initialize();
     Store store = Store.get();
     List<String> pieces;
     try {

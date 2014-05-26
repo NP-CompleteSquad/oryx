@@ -34,7 +34,7 @@ import com.cloudera.oryx.rdf.serving.generation.Generation;
 import com.cloudera.oryx.rdf.serving.generation.RDFGenerationManager;
 
 /**
- * <p>Responsds to POST request to {@code /train}. The input is one or more data points
+ * <p>Responds to POST request to {@code /train}. The input is one or more data points
  * to train, one for each line of the request body. Each data point is a delimited line of input like
  * "1,foo,3.0". The classifier updates to learn in some way from the new data. The response is empty.</p>
  *

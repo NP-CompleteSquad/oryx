@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.als.computation;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -267,7 +268,13 @@ public final class ALSDistributedGenerationRunner extends DistributedGenerationR
 
     String mapKey = iterationsPrefix + iterationNumber + "/MAP";
     if (store.exists(mapKey, true)) {
-      double map = Double.parseDouble(store.readFrom(mapKey).readLine());
+      double map;
+      BufferedReader in = store.readFrom(mapKey);
+      try {
+        map = Double.parseDouble(in.readLine());
+      } finally {
+        in.close();
+      }
       log.info("Mean average precision estimate: {}", map);
     }
 
@@ -305,7 +312,7 @@ public final class ALSDistributedGenerationRunner extends DistributedGenerationR
       LongFloatMap itemEstimates = entry.getValue();
       LongFloatMap previousItemEstimates = previousEstimates.get(userID);
       Preconditions.checkState(itemEstimates.size() == previousItemEstimates.size(),
-                               "Number of estaimtes doesn't match previous: {} vs {}",
+                               "Number of estimates doesn't match previous: {} vs {}",
                                itemEstimates.size(), previousItemEstimates.size());
       for (LongFloatMap.MapEntry entry2 : itemEstimates.entrySet()) {
         long itemID = entry2.getKey();

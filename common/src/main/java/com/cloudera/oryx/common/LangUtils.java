@@ -20,7 +20,7 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 
 /**
- * General utility methods related to the language, or primitves.
+ * General utility methods related to the language, or primitives.
  *
  * @author Sean Owen
  */

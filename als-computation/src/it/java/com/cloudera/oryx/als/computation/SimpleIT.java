@@ -353,6 +353,19 @@ public final class SimpleIT extends AbstractComputationIT {
   }
 
   @Test
+  public void testPopularRepresentative() throws Exception {
+    ServerRecommender client = getRecommender();
+    List<String> representative = client.popularRepresentativeItems();
+    log.info("{}", representative);
+    assertNotNull(representative);
+    assertEquals(30, representative.size());
+    List<String> expected = Arrays.asList(
+        "648", "276", "1171", "408", "629", "250", "211", "403", "923", "763", "477", "171", "213", "421", "637",
+        "325",  "46",  "214", "313", "503", "167", "515", "326", "606", "166", "347", "258", "713", "924", "863");
+    assertEquals(expected, representative);
+  }
+
+  @Test
   public void testSet() throws Exception {
     ServerRecommender client = getRecommender();
 

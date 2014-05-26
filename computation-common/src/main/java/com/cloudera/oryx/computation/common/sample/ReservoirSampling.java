@@ -103,7 +103,7 @@ public final class ReservoirSampling {
     PType<T> ttype = (PType<T>) input.getPTableType().getValueType().getSubTypes().get(0);
     PTableType<K, Pair<Double, T>> ptt = ptf.tableOf(keyType, ptf.pairs(ptf.doubles(), ttype));
 
-    // fill reservoirs by mapping over the vectors and re-emiting them; each map task emits at most sampleSize
+    // fill reservoirs by mapping over the vectors and re-emitting them; each map task emits at most sampleSize
     // vectors per fold; the combiner/reducer will combine the outputs and pare down to sampleSize vectors total
     PTable<K, Pair<Double, T>> samples = input.parallelDo("reservoirSampling",
         new SampleFn<K, T, N>(sampleSize, random, ttype), ptt);

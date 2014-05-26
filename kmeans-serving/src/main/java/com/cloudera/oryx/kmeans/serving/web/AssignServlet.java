@@ -24,7 +24,7 @@ import com.cloudera.oryx.kmeans.serving.generation.Generation;
 import org.apache.commons.math3.linear.RealVector;
 
 /**
- * <p>Responsds to a GET request to {@code /assign/[datum]}. The input is one data point to cluster,
+ * <p>Responds to a GET request to {@code /assign/[datum]}. The input is one data point to cluster,
  * delimited, like "1,-4,3.0". The response body contains the ID of the nearest cluster, on one line.</p>
  *
  * @author Sean Owen

@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public final class ClusteringStep extends KMeansJobStep {
@@ -143,7 +144,13 @@ public final class ClusteringStep extends KMeansJobStep {
     DataDictionary dictionary = null;
     for (String modelKey : store.list(replicaCentersKey, true)) {
       try {
-        PMML pmml = KMeansPMML.read(store.streamFrom(modelKey));
+        PMML pmml;
+        InputStream in = store.streamFrom(modelKey);
+        try {
+          pmml = KMeansPMML.read(in);
+        } finally {
+          in.close();
+        }
         log.info("Read {} from key = {}", pmml.getModels().size(), modelKey);
         if (dictionary == null) {
           dictionary = pmml.getDataDictionary();

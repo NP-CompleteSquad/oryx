@@ -83,7 +83,7 @@ session stickiness enabled.
 ## Collaborative filtering / Recommendation
 
 Oryx implements a matrix factorization-based approach based on a variant of
-[ALS (alternating least squares)](http://www2.research.att.com/~yifanhu/PUB/cf.pdf) for collaborative filtering /
+[ALS (alternating least squares)](http://labs.yahoo.com/files/HuKorenVolinsky-ICDM08.pdf) for collaborative filtering /
 recommendation. Recommender engines are most popularly used to suggest items like books and movies to people,
 but can in general be used to guess unobserved associations between entities given many observed associations.
 

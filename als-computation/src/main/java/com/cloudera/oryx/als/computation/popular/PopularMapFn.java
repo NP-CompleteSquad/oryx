@@ -20,6 +20,7 @@ import com.cloudera.oryx.common.collection.LongSet;
 import com.cloudera.oryx.common.iterator.LongPrimitiveIterator;
 import com.cloudera.oryx.computation.common.fn.OryxMapFn;
 import com.google.common.base.Preconditions;
+import org.apache.crunch.Emitter;
 import org.apache.crunch.Pair;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
@@ -27,6 +28,7 @@ import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
 public final class PopularMapFn extends OryxMapFn<Pair<Long, LongFloatMap>, Pair<Integer, LongSet>> {
 
   private static final Partitioner<Long,?> HASHER = new HashPartitioner<Long, Object>();
+  private static final int CHUNK_SIZE = 4096;
 
   private int numReducers;
 
@@ -37,16 +39,30 @@ public final class PopularMapFn extends OryxMapFn<Pair<Long, LongFloatMap>, Pair
   }
 
   @Override
-  public Pair<Integer, LongSet> map(Pair<Long, LongFloatMap> input) {
+  public void process(Pair<Long, LongFloatMap> input, Emitter<Pair<Integer, LongSet>> emitter) {
     LongFloatMap vector = input.second();
     Preconditions.checkState(!vector.isEmpty());
-    LongSet targetIDs = new LongSet(vector.size());
+    // vector is already large to have in memory, and a copy of its key set, copied several times through
+    // Crunch / Avro, can exhaust memory. Output in chunks.
+    LongSet targetIDs = new LongSet();
+    // Make sure we use exactly the same hash:
+    int partition = HASHER.getPartition(input.first(), null, numReducers);
     LongPrimitiveIterator it = vector.keySetIterator();
     while (it.hasNext()) {
       targetIDs.add(it.nextLong());
+      if (targetIDs.size() >= CHUNK_SIZE) {
+        emitter.emit(Pair.of(partition, targetIDs));
+        targetIDs = new LongSet();
+      }
     }
-    // Make sure we use exactly the same hash:
-    int partition = HASHER.getPartition(input.first(), null, numReducers);
-    return Pair.of(partition, targetIDs);
+    if (!targetIDs.isEmpty()) {
+      emitter.emit(Pair.of(partition, targetIDs));
+    }
   }
+
+  @Override
+  public Pair<Integer, LongSet> map(Pair<Long, LongFloatMap> input) {
+    throw new UnsupportedOperationException("process() should have been called!");
+  }
+
 }

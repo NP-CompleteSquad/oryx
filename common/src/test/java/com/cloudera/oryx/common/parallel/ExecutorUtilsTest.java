@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,31 +52,34 @@ public final class ExecutorUtilsTest extends OryxTest {
   }
 
   @Test
-  public void testWait() {
-    final AtomicInteger count = new AtomicInteger();
+  public void testGetResults() {
     ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.submit(new Callable<Object>() {
+    Future<Integer> future = executor.submit(new Callable<Integer>() {
       @Override
-      public Void call() throws InterruptedException {
-        Thread.sleep(500L);
-        count.incrementAndGet();
-        return null;
+      public Integer call() {
+        return 1;
       }
     });
-    ExecutorUtils.shutdownAndAwait(executor);
-    assertEquals(1, count.get());
+    List<Integer> result = ExecutorUtils.getResults(Collections.singletonList(future));
+    ExecutorUtils.shutdownNowAndAwait(executor);
+    assertEquals(1, result.size());
+    assertEquals(1, result.get(0).intValue());
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testCheckExceptions() throws Throwable {
+  public void testCheckExceptions() {
     ExecutorService executor = Executors.newSingleThreadExecutor();
-    Future<Object> future = executor.submit(new Callable<Object>() {
-      @Override
-      public Void call() throws IOException {
-        throw new IOException();
-      }
-    });
-    ExecutorUtils.checkExceptions(Collections.singletonList(future));
+    try {
+      Future<Object> future = executor.submit(new Callable<Object>() {
+        @Override
+        public Void call() throws IOException {
+          throw new IOException();
+        }
+      });
+      ExecutorUtils.getResults(Collections.singletonList(future));
+    } finally {
+      ExecutorUtils.shutdownNowAndAwait(executor);
+    }
   }
 
 }

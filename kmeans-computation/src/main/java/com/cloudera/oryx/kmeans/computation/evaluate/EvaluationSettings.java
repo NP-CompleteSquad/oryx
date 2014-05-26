@@ -15,16 +15,17 @@
 
 package com.cloudera.oryx.kmeans.computation.evaluate;
 
+import com.cloudera.oryx.common.parallel.ExecutorUtils;
 import com.cloudera.oryx.kmeans.common.FixedKEvalStrategy;
 import com.cloudera.oryx.kmeans.common.KMeansEvalStrategy;
 import com.cloudera.oryx.kmeans.common.LowCostStableEvalStrategy;
 import com.cloudera.oryx.kmeans.common.MostStableEvalStrategy;
-import com.typesafe.config.Config;
-
 import com.cloudera.oryx.kmeans.common.KMeansInitStrategy;
 import com.cloudera.oryx.kmeans.common.KMeansUpdateStrategy;
 import com.cloudera.oryx.kmeans.common.LloydsUpdateStrategy;
 import com.cloudera.oryx.kmeans.common.MiniBatchUpdateStrategy;
+
+import com.typesafe.config.Config;
 
 import java.io.Serializable;
 import java.util.List;
@@ -79,7 +80,7 @@ public final class EvaluationSettings implements Serializable {
         kmeans.getIntList("k"),
         kmeans.getInt("replications"),
         kmeans.getInt("cross-folds"),
-        kmeans.getInt("parallelism"),
+        ExecutorUtils.getParallelism(),
         initStrategy,
         updateStrategy,
         evalStrategy);

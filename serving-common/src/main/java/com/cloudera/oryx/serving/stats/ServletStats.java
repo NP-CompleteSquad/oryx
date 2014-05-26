@@ -17,7 +17,6 @@ package com.cloudera.oryx.serving.stats;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.cloudera.oryx.common.stats.RunningStatistics;
 import com.cloudera.oryx.common.stats.RunningStatisticsPerTime;
@@ -29,43 +28,41 @@ public final class ServletStats implements Serializable {
 
   private final RunningStatistics allTimeNanosec;
   private final RunningStatisticsPerTime lastHourNanosec;
-  private final AtomicInteger numClientErrors;
-  private final AtomicInteger numServerErrors;
+  private int numClientErrors;
+  private int numServerErrors;
 
   public ServletStats() {
     allTimeNanosec = new RunningStatistics();
     lastHourNanosec = new RunningStatisticsPerTime(TimeUnit.HOURS);
-    numClientErrors = new AtomicInteger();
-    numServerErrors = new AtomicInteger();
   }
 
-  public void addTimingNanosec(long timingNanosec) {
+  public synchronized void addTimingNanosec(long timingNanosec) {
     allTimeNanosec.increment(timingNanosec);
     lastHourNanosec.increment(timingNanosec);
   }
 
-  public RunningStatistics getAllTimeNanosec() {
+  public synchronized RunningStatistics getAllTimeNanosec() {
     return allTimeNanosec;
   }
 
-  public RunningStatisticsPerTime getLastHourNanosec() {
+  public synchronized RunningStatisticsPerTime getLastHourNanosec() {
     return lastHourNanosec;
   }
 
-  public int getNumClientErrors() {
-    return numClientErrors.get();
+  public synchronized int getNumClientErrors() {
+    return numClientErrors;
   }
 
-  public void incrementClientErrors() {
-    numClientErrors.incrementAndGet();
+  public synchronized void incrementClientErrors() {
+    numClientErrors++;
   }
 
-  public int getNumServerErrors() {
-    return numServerErrors.get();
+  public synchronized int getNumServerErrors() {
+    return numServerErrors;
   }
 
-  public void incrementServerErrors() {
-    numServerErrors.incrementAndGet();
+  public synchronized void incrementServerErrors() {
+    numServerErrors++;
   }
 
 }

@@ -16,7 +16,6 @@
 package com.cloudera.oryx.als.computation.local;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.cloudera.oryx.als.common.NumericIDValue;
@@ -77,13 +75,11 @@ final class MakeRecommendations implements Callable<Object> {
     final File recommendDir = new File(modelDir, "recommend");
     IOUtils.mkdirs(recommendDir);
 
-    int numThreads = ExecutorUtils.getParallelism();
-    ExecutorService executor =
-        Executors.newFixedThreadPool(numThreads,
-                                     new ThreadFactoryBuilder().setNameFormat("Recommend-%d").setDaemon(true).build());
+    ExecutorService executor = ExecutorUtils.buildExecutor("Recommend");
     Collection<Future<Object>> futures = Lists.newArrayList();
 
     try {
+      int numThreads = ExecutorUtils.getParallelism();
       for (int i = 0; i < numThreads; i++) {
         final int workerNumber = i;
         futures.add(executor.submit(new Callable<Object>() {
@@ -120,12 +116,10 @@ final class MakeRecommendations implements Callable<Object> {
         }));
 
       }
-
+      ExecutorUtils.getResults(futures);
     } finally {
       ExecutorUtils.shutdownNowAndAwait(executor);
     }
-
-    ExecutorUtils.checkExceptions(futures);
 
     log.info("Finished recommendations");
 

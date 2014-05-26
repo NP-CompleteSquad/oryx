@@ -21,12 +21,12 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -35,7 +35,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.math3.util.FastMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,9 +85,7 @@ public final class ServerRecommender implements OryxRecommender, Closeable {
     executor = new ReloadingReference<ExecutorService>(new Callable<ExecutorService>() {
       @Override
       public ExecutorService call() {
-        return Executors.newFixedThreadPool(
-            2 * numCores,
-            new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ServerRecommender-%d").build());
+        return ExecutorUtils.buildExecutor("ServerRecommender", 2 * numCores);
       }
     });
 
@@ -315,7 +312,7 @@ public final class ServerRecommender implements OryxRecommender, Closeable {
           }
         }));
       }
-      ExecutorUtils.checkExceptions(futures);
+      ExecutorUtils.getResults(futures);
 
     } else {
 
@@ -489,6 +486,32 @@ public final class ServerRecommender implements OryxRecommender, Closeable {
                                                      rescorer,
                                                      generation.getIDMapping()),
                         howMany));
+  }
+
+  @Override
+  public List<String> popularRepresentativeItems() throws NotReadyException {
+    Generation generation = getCurrentGeneration();
+    LongObjectMap<float[]> Y = generation.getY();
+    Lock yLock = generation.getYLock().readLock();
+    yLock.lock();
+    try {
+      int numFeatures = countFeatures(Y);
+      if (numFeatures == 0) {
+        return Collections.emptyList();
+      }
+      List<String> result = Lists.newArrayListWithCapacity(numFeatures);
+      float[] unitVector = new float[numFeatures];
+      float[][] unitVectorContainer = { unitVector };
+      for (int f = 0; f < numFeatures; f++) {
+        unitVector[f] = 1.0f;
+        List<IDValue> top = multithreadedTopN(unitVectorContainer, null, null, 1, generation.getCandidateFilter());
+        result.add(top == null || top.isEmpty() ? null : top.get(0).getID());
+        unitVector[f] = 0.0f;
+      }
+      return result;
+    } finally {
+      yLock.unlock();
+    }
   }
 
   /**
