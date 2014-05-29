@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.kmeans.common;
 
+import com.cloudera.oryx.common.io.DelimitedDataUtils;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -22,10 +23,9 @@ import org.apache.commons.math3.linear.RealMatrixPreservingVisitor;
 
 import java.io.Serializable;
 
-import com.cloudera.oryx.common.io.DelimitedDataUtils;
-
 /**
  * Statistics related to the cost and stability of the clusters found during a particular clustering run.
+ * For further information read the <a href="http://datamining.rutgers.edu/publication/KDD09-measure.pdf">Related Paper</a>.
  */
 public final class ClusterValidityStatistics implements Serializable {
 

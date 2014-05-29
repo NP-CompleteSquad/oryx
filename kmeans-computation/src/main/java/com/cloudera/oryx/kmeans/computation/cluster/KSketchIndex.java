@@ -71,15 +71,22 @@ public final class KSketchIndex implements Serializable {
       }
     }
   }
-
+/**
+ * Returns the dimensions of the {@code RealVector} points in each fold.
+ */
   public int getDimension() {
     return dimensions;
   }
-
+/**
+ * Returns the number of the folds.
+ */
   public int size() {
     return pointsPerFold.length;
   }
-
+/**
+ * Returns the number of the {@code RealVector} points
+ * contained in each fold.
+ */
   public int[] getPointCounts() {
     return pointsPerFold;
   }
@@ -102,7 +109,14 @@ public final class KSketchIndex implements Serializable {
     }
     updated = false;
   }
-  
+
+    /**
+     * Adds a {@code RealVector} point from the centers to the fold
+     * of the KSketchIndex structure.
+     *
+     * @param vec the given point
+     * @param centerId it's id.
+     */
   public void add(RealVector vec, int centerId) {
     points.get(centerId).add(vec);
     double length = vec.getNorm();
@@ -132,6 +146,14 @@ public final class KSketchIndex implements Serializable {
     return bitset;
   }
 
+    /**
+     * Returns all the distances between a {@code RealVector} point and it's closest center for each fold.
+     *
+     * @param vec the given point
+     * @param approx whether to use exact computation or not
+     *
+     * @return the distances.
+     */
   public Distance[] getDistances(RealVector vec, boolean approx) {
     Distance[] distances = new Distance[size()];
     for (int i = 0; i < distances.length; i++) {
@@ -140,6 +162,16 @@ public final class KSketchIndex implements Serializable {
     return distances;
   }
 
+/**
+ * Calculates the minimum Euclidean distance between the given {@code RealVector} vec
+ * and each {@code RealVector} center contained in the List with the given id.
+ *
+ * @param vec The given point.
+ * @param id  The id of the fold containing the centers.
+ * @param approx  Whether to use exact computation or an approximation.
+ *
+ * @return a {@code Distance} instance,containing the point's distance from the closest center and it's id.
+ */
   public Distance getDistance(RealVector vec, int id, boolean approx) {
     double distance = Double.POSITIVE_INFINITY;
     int closestPoint = -1;
@@ -228,7 +260,15 @@ public final class KSketchIndex implements Serializable {
       return distance ^ index;
     }
   }
-  
+
+    /**
+     * Calculates the hamming distance between two {@code Bitset} indexes.
+     *
+     * @param q
+     * @param idx
+     *
+     * @return the hamming distance.
+     */
   private static int hammingDistance(BitSet q, BitSet idx) {
     BitSet x = new BitSet(q.size());
     x.or(q);
@@ -236,6 +276,15 @@ public final class KSketchIndex implements Serializable {
     return x.cardinality();
   }
 
+    /**
+     * Assigns a weight to every {@code RealVector} point contained in the fold-list with the specific id
+     * and returns them as {@code WeightedRealVector} points.
+     *
+     * @param foldId the id of the fold with the vectors
+     * @param weights the weights to assign to each vector
+     *
+     * @return the weighted vectors of the fold with the specific id.
+     */
   public List<WeightedRealVector> getWeightedVectorsForFold(int foldId, long[] weights) {
     List<WeightedRealVector> ret = Lists.newArrayList();
     int i = 0;
@@ -246,6 +295,13 @@ public final class KSketchIndex implements Serializable {
     return ret;
   }
 
+    /**
+     * Returns the weighted vectors for all folds.
+     *
+     * @param data
+     *
+     * @return all the weighted vectors.
+     */
   public List<List<WeightedRealVector>> getWeightedVectors(ClosestSketchVectorData data) {
     List<List<WeightedRealVector>> ret = Lists.newArrayList();
     for (int i = 0; i < data.getNumFolds(); i++) {

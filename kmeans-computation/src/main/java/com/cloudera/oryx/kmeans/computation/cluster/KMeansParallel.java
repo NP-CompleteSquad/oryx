@@ -78,8 +78,12 @@ public final class KMeansParallel {
     }
     return centers;
   }
-  
-  private static final class LloydsMapFn<V extends RealVector> extends DoFn<V, Pair<Pair<Integer, Integer>, Pair<V, Long>>> {
+
+/**
+  * Responsible for assigning points to the closest center.
+  */
+
+    private static final class LloydsMapFn<V extends RealVector> extends DoFn<V, Pair<Pair<Integer, Integer>, Pair<V, Long>>> {
     private final KSketchIndex centers;
     private final boolean approx;
     
@@ -97,7 +101,10 @@ public final class KMeansParallel {
       }
     }
   }
-  
+
+/**
+  * Responsible for renewing the centers for Lloyd's next iteration.
+  */
   private static final class LloydsCenters<V extends RealVector> extends PObjectImpl<Pair<Pair<Integer, Integer>, Pair<V, Long>>, List<Centers>> {
 
     private final int numCenters;
