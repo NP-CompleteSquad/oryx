@@ -15,14 +15,14 @@
 
 package com.cloudera.oryx.kmeans.common;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.apache.commons.math3.linear.RealVector;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a collection of {@code Vector} instances that act as the centers of
@@ -111,7 +111,22 @@ public final class Centers implements Iterable<RealVector> {
     }
     return new Distance(min, index);
   }
-  
+
+    /**
+     * Calculates the <i>cost</i> of each of the given {@code Centers} instances on the given
+     * dataset, where the cost is defined in Bahmani et al. as the sum of squared distances
+     * from each point in the dataset to the {@code Centers}.
+     *
+     * @param points
+     * @return cost of clustering.
+     */
+  public <W extends Weighted<RealVector>> double getClusteringCost(List<W> points) {
+      double costOfClustering = 0;
+      for (W weightedVec : points) {
+          costOfClustering += getDistance(weightedVec.thing()).getSquaredDistance();
+      }
+      return costOfClustering;
+  }
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof Centers)) {
