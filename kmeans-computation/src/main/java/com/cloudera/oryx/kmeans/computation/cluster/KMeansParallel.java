@@ -15,24 +15,18 @@
 
 package com.cloudera.oryx.kmeans.computation.cluster;
 
-import java.util.List;
-
-import com.cloudera.oryx.kmeans.common.Distance;
-import com.cloudera.oryx.kmeans.common.Centers;
 import com.cloudera.oryx.computation.common.fn.SumVectorsAggregator;
+import com.cloudera.oryx.kmeans.common.Centers;
+import com.cloudera.oryx.kmeans.common.Distance;
+import com.google.common.collect.Lists;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.crunch.Aggregator;
-import org.apache.crunch.DoFn;
-import org.apache.crunch.Emitter;
-import org.apache.crunch.PCollection;
-import org.apache.crunch.PTable;
-import org.apache.crunch.Pair;
+import org.apache.crunch.*;
 import org.apache.crunch.materialize.pobject.PObjectImpl;
 import org.apache.crunch.types.PTableType;
 import org.apache.crunch.types.PTypeFamily;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 public final class KMeansParallel {
 
@@ -79,9 +73,9 @@ public final class KMeansParallel {
     return centers;
   }
 
-/**
-  * Responsible for assigning points to the closest center.
-  */
+    /**
+     * Responsible for assigning points to the closest center.
+     */
 
     private static final class LloydsMapFn<V extends RealVector> extends DoFn<V, Pair<Pair<Integer, Integer>, Pair<V, Long>>> {
     private final KSketchIndex centers;
@@ -102,9 +96,9 @@ public final class KMeansParallel {
     }
   }
 
-/**
-  * Responsible for renewing the centers for Lloyd's next iteration.
-  */
+  /**
+   * Responsible for renewing the centers for Lloyd's next iteration.
+   */
   private static final class LloydsCenters<V extends RealVector> extends PObjectImpl<Pair<Pair<Integer, Integer>, Pair<V, Long>>, List<Centers>> {
 
     private final int numCenters;
