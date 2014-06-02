@@ -15,18 +15,25 @@
 
 package com.cloudera.oryx.kmeans.computation.cluster;
 
-import com.cloudera.oryx.computation.common.fn.SumVectorsAggregator;
-import com.cloudera.oryx.kmeans.common.Centers;
+import java.util.List;
+
 import com.cloudera.oryx.kmeans.common.Distance;
-import com.google.common.collect.Lists;
+import com.cloudera.oryx.kmeans.common.Centers;
+import com.cloudera.oryx.computation.common.fn.SumVectorsAggregator;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.crunch.*;
+import org.apache.crunch.Aggregator;
+import org.apache.crunch.DoFn;
+import org.apache.crunch.Emitter;
+import org.apache.crunch.PCollection;
+import org.apache.crunch.PTable;
+import org.apache.crunch.Pair;
 import org.apache.crunch.materialize.pobject.PObjectImpl;
 import org.apache.crunch.types.PTableType;
 import org.apache.crunch.types.PTypeFamily;
 
-import java.util.List;
+import com.google.common.collect.Lists;
+
 
 public final class KMeansParallel {
 
