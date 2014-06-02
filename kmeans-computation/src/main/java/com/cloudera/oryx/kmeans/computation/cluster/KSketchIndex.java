@@ -260,7 +260,6 @@ public final class KSketchIndex implements Serializable {
 
   /**
    * Calculates the hamming distance between two {@code Bitset} indexes.
-   *
    * @param q
    * @param idx
    *
@@ -276,7 +275,6 @@ public final class KSketchIndex implements Serializable {
   /**
    * Assigns a weight to every {@code RealVector} point contained in the fold-list with the specific id
    * and returns them as {@code WeightedRealVector} points.
-   *
    * @param foldId the id of the fold with the vectors
    * @param weights the weights to assign to each vector
    *
@@ -294,8 +292,7 @@ public final class KSketchIndex implements Serializable {
 
   /**
    * Returns the weighted vectors for all folds.
-   *
-   * @param data
+   * @param data structure that counts points closer to a specific center than any of the other centers.
    *
    * @return all the weighted vectors.
    */

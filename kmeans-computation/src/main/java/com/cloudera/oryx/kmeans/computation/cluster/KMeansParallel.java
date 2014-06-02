@@ -15,11 +15,10 @@
 
 package com.cloudera.oryx.kmeans.computation.cluster;
 
-import java.util.List;
-
-import com.cloudera.oryx.kmeans.common.Distance;
-import com.cloudera.oryx.kmeans.common.Centers;
 import com.cloudera.oryx.computation.common.fn.SumVectorsAggregator;
+import com.cloudera.oryx.kmeans.common.Centers;
+import com.cloudera.oryx.kmeans.common.Distance;
+import com.google.common.collect.Lists;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.crunch.Aggregator;
@@ -32,8 +31,7 @@ import org.apache.crunch.materialize.pobject.PObjectImpl;
 import org.apache.crunch.types.PTableType;
 import org.apache.crunch.types.PTypeFamily;
 
-import com.google.common.collect.Lists;
-
+import java.util.List;
 
 public final class KMeansParallel {
 
@@ -58,7 +56,7 @@ public final class KMeansParallel {
   /**
    * Runs Lloyd's algorithm on the given points for a given number of iterations, returning the final
    * centers that result.
-   * 
+   *
    * @param points The data points to cluster
    * @param centers The list of initial centers
    * @param numIterations The number of iterations to run, with each iteration corresponding to a MapReduce job
@@ -83,16 +81,15 @@ public final class KMeansParallel {
     /**
      * Responsible for assigning points to the closest center.
      */
-
     private static final class LloydsMapFn<V extends RealVector> extends DoFn<V, Pair<Pair<Integer, Integer>, Pair<V, Long>>> {
     private final KSketchIndex centers;
     private final boolean approx;
-    
+
     private LloydsMapFn(KSketchIndex centers, boolean approx) {
       this.centers = centers;
       this.approx = approx;
     }
-    
+
     @Override
     public void process(V vec, Emitter<Pair<Pair<Integer, Integer>, Pair<V, Long>>> emitFn) {
       Pair<V, Long> out = Pair.of(vec, 1L);
@@ -109,7 +106,7 @@ public final class KMeansParallel {
   private static final class LloydsCenters<V extends RealVector> extends PObjectImpl<Pair<Pair<Integer, Integer>, Pair<V, Long>>, List<Centers>> {
 
     private final int numCenters;
-    
+
     LloydsCenters(PTable<Pair<Integer, Integer>, Pair<V, Long>> collect, int numCenters) {
       super(collect);
       this.numCenters = numCenters;
