@@ -15,14 +15,14 @@
 
 package com.cloudera.oryx.kmeans.common;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.math3.linear.RealVector;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.random.RandomGenerator;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 /**
  * The strategies used to choose the initial {@link Centers} used for a k-means algorithm
@@ -79,7 +79,71 @@ public enum KMeansInitStrategy {
       }
       return centers;
     }
-  };
+  },
+    /**
+     * Uses the <i>k-means||</i> strategy proposed by Bahman Bahmani from Standford University.
+     * See <a href="http://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf">the Related Paper</a>
+     * for details.
+     */
+    PARALLEL {
+                @Override
+                public <W extends Weighted<RealVector>> Centers apply(List<W> points,
+                                                                      int numClusters,
+                                                                      RandomGenerator random) {
+
+            /*
+             * Algorithm  k-means||(k,l) initialization.
+             *  1: C   sample a point uniformly at random from X
+             *  2:  ψ<-- ΦX(C)
+             *  3: for O(logψ ) times do
+             *  4: C'<--sample each point x ε X independently with
+             *     probability px = ld^2(x0,C)/ΦX(C)
+             *  5: C<--C U C'
+             *  6: end for
+             *  7: For x ε C, set wx to be the number of points in X closer
+             *     to x than any other point in C
+             *  8: Recluster the weighted points in C into k clusters
+             */
+                    Centers intermediateCenters = RANDOM.apply(points, 1, random);
+                    Random rand = new Random();
+                    double[] cumulativeScores = new double[points.size() + 1];
+                    long oversamplingFactor = Math.round(( 0.5+(1.5*rand.nextDouble()) )*numClusters);
+
+                    //Calculate the initial cost of clustering after selecting the 1st center.
+                    double costOfClustering=intermediateCenters.getClusteringCost(points);
+
+                    //Oversampling Phase.
+                    for(int i=0; i< Math.round(Math.log10(costOfClustering)); i++) {
+                        cumulativeScores[0] = 0;
+                        for (int j = 0; j < points.size(); j++) {
+                            W weightedVec = points.get(j);
+                            double score = oversamplingFactor * intermediateCenters.getDistance(weightedVec.thing()).getSquaredDistance() * weightedVec.weight();
+                            cumulativeScores[j + 1] = cumulativeScores[j] + score;
+                        }
+                        for (int l = 0; l < oversamplingFactor; l++) {
+                            double r = cumulativeScores[points.size()] * random.nextDouble();
+                            int next = Arrays.binarySearch(cumulativeScores, r);
+                            int index = (next > 0) ? next - 1 : -2 - next;
+                            while (index > 0 && intermediateCenters.contains(points.get(index).thing())) {
+                                index--;
+                            }
+                            intermediateCenters = intermediateCenters.extendWith(points.get(index).thing());
+                        }
+                    }
+                    //Count points closer to a specific center than any other center in the intermediate set.
+                    List<WeightedRealVector> centersToRecluster=Lists.newArrayList();
+                    double[] centerIdFrequency = new double[intermediateCenters.size()];
+                    for (W weightedVec : points) {
+                        centerIdFrequency[intermediateCenters.getDistance(weightedVec.thing()).getClosestCenterId()]++;
+                    }
+                    for(int i=0; i<intermediateCenters.size();i++){
+                        RealVector center=intermediateCenters.get(i);
+                        centersToRecluster.add(new WeightedRealVector(center,centerIdFrequency[i]));
+                    }
+                    //Recluster-Reduce Phase.
+                    return PLUS_PLUS.apply(centersToRecluster,numClusters,random);
+                }
+            };
 
   /**
    * Use this instance to create the initial {@code Centers} from the given parameters.
