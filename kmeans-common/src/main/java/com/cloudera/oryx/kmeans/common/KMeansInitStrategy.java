@@ -107,7 +107,7 @@ public enum KMeansInitStrategy {
                     Centers intermediateCenters = RANDOM.apply(points, 1, random);
                     Random rand = new Random();
                     double[] cumulativeScores = new double[points.size() + 1];
-                    long oversamplingFactor = Math.round(( 0.5+(1.5*rand.nextDouble()) )*numClusters);
+                    long oversamplingFactor = Math.round(0.5*numClusters);
 
                     //Calculate the initial cost of clustering after selecting the 1st center.
                     double costOfClustering=intermediateCenters.getClusteringCost(points);
