@@ -15,7 +15,9 @@
 
 package com.cloudera.oryx.kmeans.common;
 
+import java.nio.file.Paths;
 import java.util.List;
+import java.io.File;
 
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.random.RandomManager;
@@ -80,8 +82,56 @@ public final class KMeansTest extends OryxTest {
     Centers done = lloyds.update(points, expected);
     assertEquals(new Centers(Vectors.of(1.5, 1.0), Vectors.of(4.5, 3.5)), done);
   }
-  
   @Test
+  public void testParallelInit() throws Exception {
+    Centers expected = new Centers(Vectors.of(1.0, 1.0), Vectors.of(5.0, 4.0));
+    assertEquals(expected, KMeansInitStrategy.PARALLEL.apply(points, 2, RandomManager.getRandom()));
+
+    Centers done = lloyds.update(points, new Centers(Vectors.of(1.0, 1.0), Vectors.of(5.0, 4.0)));
+    assertEquals(new Centers(Vectors.of(1.5, 1.0), Vectors.of(4.5, 3.5)), done);
+  }
+
+    public boolean assertGreaterThan(double thoughtBigger,double thoughtSmaller){
+        if (thoughtBigger>thoughtSmaller){
+            return true;
+        }
+        else{
+            throw new AssertionError("\nFirst: "+thoughtBigger+"\nSecond: "+thoughtSmaller);
+        }
+    }
+    @Test
+    public void testPlusPlusOverParallel() throws Exception{
+        //Gather vectors-points from file.
+        VectorInputData input= new VectorInputData();
+        List<WeightedRealVector>randPoints=input.getTestVectors(2,new File(Paths.get("").toAbsolutePath().toString()+"/Random.txt"));
+
+        //Test initialization
+        System.out.println("Testing initialization...");
+        Centers plus_plusCenters = KMeansInitStrategy.PLUS_PLUS.apply(randPoints, 50, RandomManager.getRandom());
+        Centers parallelCenters = KMeansInitStrategy.PARALLEL.apply(randPoints, 50, RandomManager.getRandom());
+       // assertNotEquals(plus_plusCenters,parallelCenters);
+
+        double plus_plusClusteringCost=plus_plusCenters.getClusteringCost(randPoints);
+        double parallelClusteringCost= parallelCenters.getClusteringCost(randPoints);
+
+        System.out.println("PlusPlus Clustering cost: "+plus_plusClusteringCost);
+        System.out.println("Parallel Clustering cost: "+parallelClusteringCost);
+
+        assertGreaterThan(plus_plusClusteringCost,parallelClusteringCost);
+
+        //Test lloyd's convergence
+        System.out.println("Testing lloyd's convergence...");
+        double lloydsOnPlusPlusClusteringCost=lloyds.update(randPoints,plus_plusCenters).getClusteringCost(randPoints);
+        double lloydsOnParallelClusteringCost=lloyds.update(randPoints,parallelCenters).getClusteringCost(randPoints);
+
+        System.out.println("PlusPlus Clustering cost: "+lloydsOnPlusPlusClusteringCost);
+
+        System.out.println("Parallel Clustering cost: "+lloydsOnParallelClusteringCost);
+
+        assertGreaterThan(lloydsOnPlusPlusClusteringCost, lloydsOnParallelClusteringCost);
+    }
+
+    @Test
   public void testMiniBatch() throws Exception {
     Centers centers = new Centers(Vectors.of(2.0, 1.0), Vectors.of(5.0, 4.0));
     RandomGenerator rand = RandomManager.getRandom();
